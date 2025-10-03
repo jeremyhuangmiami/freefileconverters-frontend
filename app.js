@@ -7,7 +7,7 @@
 const CONFIG = {
   // For local development: 'http://localhost:3000'
   // For production: 'https://your-backend.onrender.com'
-  BACKEND_URL: 'http://localhost:3000',
+  BACKEND_URL: 'https://freefileconverters-backend.onrender.com',
   MAX_FILE_SIZE: 1024 * 1024 * 1024 // 1GB in bytes
 };
 
