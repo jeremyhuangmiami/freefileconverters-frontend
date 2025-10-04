@@ -36,11 +36,20 @@
       justify-content: space-between;
     }
     
-    .logo {
-      font-size: 1.5rem;
-      font-weight: 800;
-      color: #6366f1;
+    .logo-link {
+      display: flex;
+      align-items: center;
       text-decoration: none;
+    }
+    
+    .logo {
+      height: 45px;
+      width: auto;
+      transition: transform 0.2s ease;
+    }
+    
+    .logo:hover {
+      transform: scale(1.05);
     }
     
     .nav-links {
@@ -315,6 +324,22 @@
       margin-bottom: 2rem;
     }
     
+    .format-header {
+      grid-column: 1 / -1;
+      font-weight: 800;
+      font-size: 0.75rem;
+      color: #6366f1;
+      text-align: left;
+      padding: 0.75rem 0 0.25rem 0;
+      margin-top: 0.5rem;
+      border-bottom: 2px solid #e5e7eb;
+      letter-spacing: 0.05em;
+    }
+    
+    .format-header:first-child {
+      margin-top: 0;
+    }
+    
     .format-btn {
       padding: 1.125rem 0.75rem;
       border: 2px solid #e5e7eb;
@@ -479,6 +504,119 @@
       font-size: 0.9375rem;
     }
     
+    /* Tools Section */
+    .tools-section {
+      max-width: 1200px;
+      margin: 0 auto 5rem;
+      padding: 0 2rem;
+    }
+    
+    .tools-header {
+      text-align: center;
+      margin-bottom: 3rem;
+    }
+    
+    .tools-header h2 {
+      font-size: 2.5rem;
+      font-weight: 800;
+      color: #111827;
+      margin-bottom: 1rem;
+    }
+    
+    .tools-header p {
+      font-size: 1.125rem;
+      color: #6b7280;
+    }
+    
+    .tools-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 2rem;
+    }
+    
+    .tool-category {
+      background: white;
+      border-radius: 1.25rem;
+      padding: 2rem;
+      border: 1px solid #e5e7eb;
+      transition: all 0.3s ease;
+    }
+    
+    .tool-category:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.08);
+      border-color: #6366f1;
+    }
+    
+    .tool-category-icon {
+      font-size: 3rem;
+      margin-bottom: 1rem;
+    }
+    
+    .tool-category-title {
+      font-size: 1.5rem;
+      font-weight: 800;
+      color: #111827;
+      margin-bottom: 1rem;
+    }
+    
+    .tool-category-description {
+      color: #6b7280;
+      margin-bottom: 1.5rem;
+      line-height: 1.6;
+      font-size: 0.9375rem;
+    }
+    
+    .tool-formats {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+    }
+    
+    .tool-format-tag {
+      background: #f3f4f6;
+      color: #4b5563;
+      padding: 0.5rem 0.875rem;
+      border-radius: 0.5rem;
+      font-size: 0.8125rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      transition: all 0.2s ease;
+    }
+    
+    .tool-format-tag:hover {
+      background: #e5e7eb;
+      transform: translateY(-2px);
+    }
+    
+    .tool-category.image .tool-format-tag {
+      background: #dbeafe;
+      color: #1e40af;
+    }
+    
+    .tool-category.document .tool-format-tag {
+      background: #fef3c7;
+      color: #92400e;
+    }
+    
+    .tool-category.audio .tool-format-tag {
+      background: #d1fae5;
+      color: #065f46;
+    }
+    
+    .tool-category.video .tool-format-tag {
+      background: #fce7f3;
+      color: #9f1239;
+    }
+    
+    .tool-conversion-arrows {
+      margin: 1rem 0;
+      text-align: center;
+      color: #9ca3af;
+      font-weight: 600;
+      font-size: 0.875rem;
+    }
+    
     /* Footer */
     footer {
       background: #111827;
@@ -544,11 +682,14 @@
   <!-- Header -->
   <header>
     <div class="header-content">
-      <a href="/" class="logo">FreeFileConverter</a>
+      <a href="/" class="logo-link">
+        <img src="https://wiki-images.artofproblemsolving.com//3/34/Freefileconvertercom-high-resolution-logo-transparent.png" alt="FreeFileConverter" class="logo">
+      </a>
       <nav class="nav-links">
         <a href="#" class="nav-link">Tools</a>
         <a href="#" class="nav-link">Pricing</a>
         <a href="#" class="nav-link">Support</a>
+        <a href="#" class="sign-in-btn">Sign In</a>
       </nav>
     </div>
   </header>
@@ -569,7 +710,7 @@
           Choose Files
         </button>
         <input type="file" id="fileInput" name="file" class="file-input" required>
-        <p class="file-size-text">Max file size 1GB. <a href="#signup"></a> </p>
+        <p class="file-size-text">Max file size 1GB. <a href="#signup">Sign Up</a> for more</p>
         <p class="terms-text">By proceeding, you agree to our <a href="#terms">Terms of Use</a>.</p>
       </div>
       
@@ -643,13 +784,89 @@
     </div>
   </div>
   
+  <!-- Tools Section -->
+  <div class="tools-section">
+    <div class="tools-header">
+      <h2>Supported File Conversions</h2>
+      <p>Convert between dozens of file formats in seconds</p>
+    </div>
+    
+    <div class="tools-grid">
+      <!-- Image Converter -->
+      <div class="tool-category image">
+        <div class="tool-category-icon">🖼️</div>
+        <h3 class="tool-category-title">Image Converter</h3>
+        <p class="tool-category-description">Convert images between popular formats while maintaining quality.</p>
+        <div class="tool-conversion-arrows">Convert between:</div>
+        <div class="tool-formats">
+          <span class="tool-format-tag">PNG</span>
+          <span class="tool-format-tag">JPG</span>
+          <span class="tool-format-tag">JPEG</span>
+          <span class="tool-format-tag">GIF</span>
+          <span class="tool-format-tag">WEBP</span>
+          <span class="tool-format-tag">BMP</span>
+          <span class="tool-format-tag">SVG</span>
+          <span class="tool-format-tag">ICO</span>
+        </div>
+      </div>
+      
+      <!-- Document Converter -->
+      <div class="tool-category document">
+        <div class="tool-category-icon">📝</div>
+        <h3 class="tool-category-title">Document Converter</h3>
+        <p class="tool-category-description">Transform documents for compatibility across different platforms.</p>
+        <div class="tool-conversion-arrows">Convert between:</div>
+        <div class="tool-formats">
+          <span class="tool-format-tag">PDF</span>
+          <span class="tool-format-tag">DOCX</span>
+          <span class="tool-format-tag">DOC</span>
+          <span class="tool-format-tag">ODT</span>
+          <span class="tool-format-tag">TXT</span>
+          <span class="tool-format-tag">RTF</span>
+        </div>
+      </div>
+      
+      <!-- Audio Converter -->
+      <div class="tool-category audio">
+        <div class="tool-category-icon">🎵</div>
+        <h3 class="tool-category-title">Audio Converter</h3>
+        <p class="tool-category-description">Convert audio files to different formats for any media player.</p>
+        <div class="tool-conversion-arrows">Convert between:</div>
+        <div class="tool-formats">
+          <span class="tool-format-tag">MP3</span>
+          <span class="tool-format-tag">WAV</span>
+          <span class="tool-format-tag">OGG</span>
+          <span class="tool-format-tag">M4A</span>
+          <span class="tool-format-tag">FLAC</span>
+          <span class="tool-format-tag">AAC</span>
+        </div>
+      </div>
+      
+      <!-- Video Converter -->
+      <div class="tool-category video">
+        <div class="tool-category-icon">🎬</div>
+        <h3 class="tool-category-title">Video Converter</h3>
+        <p class="tool-category-description">Convert videos for web, mobile, or desktop playback.</p>
+        <div class="tool-conversion-arrows">Convert between:</div>
+        <div class="tool-formats">
+          <span class="tool-format-tag">MP4</span>
+          <span class="tool-format-tag">AVI</span>
+          <span class="tool-format-tag">MOV</span>
+          <span class="tool-format-tag">MKV</span>
+          <span class="tool-format-tag">WEBM</span>
+          <span class="tool-format-tag">FLV</span>
+        </div>
+      </div>
+    </div>
+  </div>
+  
   <!-- Footer -->
   <footer>
     <div class="footer-content">
       <div class="footer-grid">
         <div class="footer-section">
-          <h3>FreeFileConverter</h3>
-          <p style="color: #9ca3af; font-size: 0.9375rem; line-height: 1.6;">Transform any file format quickly and securely with our free online converter.</p>
+          <img src="https://wiki-images.artofproblemsolving.com//3/34/Freefileconvertercom-high-resolution-logo-transparent.png" alt="FreeFileConverter" class="footer-logo">
+          <p style="color: #9ca3af; font-size: 0.9375rem; line-height: 1.6; margin-top: 1rem;">Transform any file format quickly and securely with our free online converter.</p>
         </div>
         <div class="footer-section">
           <h3>Products</h3>
