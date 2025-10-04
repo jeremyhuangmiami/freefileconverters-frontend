@@ -7,7 +7,7 @@
 const CONFIG = {
   // For local development: 'http://localhost:3000'
   // For production: 'https://your-backend.onrender.com'
-  BACKEND_URL: 'https://freefileconverters-backend.onrender.com',
+  BACKEND_URL: 'https://freefileconverters-backend.onrender.com/',
   MAX_FILE_SIZE: 1024 * 1024 * 1024 // 1GB in bytes
 };
 
@@ -242,7 +242,7 @@ function resetForm() {
 }
 
 /**
- * Handle file conversion
+ * Handle file conversion with realistic progress tracking
  */
 async function handleConvert(e) {
   e.preventDefault();
@@ -268,30 +268,48 @@ async function handleConvert(e) {
     formData.append('file', selectedFile);
     formData.append('targetFormat', selectedFormat);
     
-    // Simulate upload progress
-    animateProgress(0, 50, 1000);
+    // Phase 1: Upload (0-30%)
+    const uploadPromise = new Promise(resolve => {
+      animateProgress(0, 30, 1500);
+      setTimeout(resolve, 1500);
+    });
     
-    // Send conversion request
-    const response = await fetch(`${CONFIG.BACKEND_URL}/convert`, {
+    // Start the actual fetch request
+    const fetchPromise = fetch(`${CONFIG.BACKEND_URL}/convert`, {
       method: 'POST',
       body: formData
     });
+    
+    // Wait for upload animation to complete
+    await uploadPromise;
+    
+    // Phase 2: Processing (30-70%)
+    progressText.textContent = 'Processing conversion...';
+    const processingPromise = new Promise(resolve => {
+      animateProgress(30, 70, 2000);
+      setTimeout(resolve, 2000);
+    });
+    
+    // Wait for either processing animation or actual response (whichever is longer)
+    const [response] = await Promise.all([fetchPromise, processingPromise]);
     
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
       throw new Error(errorData.error || `Conversion failed: ${response.statusText}`);
     }
     
-    // Update progress
-    progressText.textContent = 'Processing conversion...';
-    animateProgress(50, 90, 1000);
+    // Phase 3: Finalizing (70-95%)
+    progressText.textContent = 'Finalizing...';
+    animateProgress(70, 95, 1000);
     
     // Get the converted file
     const blob = await response.blob();
     
-    // Complete progress
-    progressBar.style.width = '100%';
+    // Phase 4: Complete (95-100%)
     progressText.textContent = 'Download ready!';
+    animateProgress(95, 100, 300);
+    
+    await new Promise(resolve => setTimeout(resolve, 300));
     
     // Download the file
     const url = window.URL.createObjectURL(blob);
@@ -311,7 +329,7 @@ async function handleConvert(e) {
     // Show success message
     setTimeout(() => {
       progressContainer.classList.remove('active');
-      showStatus('✓ Success! Your file has been converted and downloaded.', 'success');
+      showStatus('✓ Success! Your file has been converted and downloaded. Files are automatically deleted from our servers.', 'success');
       convertBtn.textContent = `Convert to ${selectedFormat.toUpperCase()}`;
       convertBtn.disabled = false;
     }, 500);
