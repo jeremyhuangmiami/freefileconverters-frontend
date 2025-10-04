@@ -6,22 +6,15 @@
 // Configuration - UPDATE THIS WITH YOUR BACKEND URL
 const CONFIG = {
   // For local development: 'http://localhost:3000'
-  // For production: 'https://your-backend.onrender.com'
-  BACKEND_URL: 'https://freefileconverters-backend.onrender.com/',
+  // For production: 'https://your-backend.onrender.com' (NO TRAILING SLASH)
+  BACKEND_URL: 'https://freefileconverters-backend.onrender.com',
   MAX_FILE_SIZE: 1024 * 1024 * 1024 // 1GB in bytes
 };
 
-// Supported file formats mapped to their categories
+// Supported file formats mapped to their categories - ORGANIZED BY TYPE
 const FORMATS = {
-  // Documents
-  pdf: { name: 'PDF', category: 'document' },
-  docx: { name: 'DOCX', category: 'document' },
-  doc: { name: 'DOC', category: 'document' },
-  odt: { name: 'ODT', category: 'document' },
-  txt: { name: 'TXT', category: 'document' },
-  rtf: { name: 'RTF', category: 'document' },
-  
-  // Images
+  // Image Formats
+  'image-header': { name: '📷 IMAGES', category: 'header' },
   png: { name: 'PNG', category: 'image' },
   jpg: { name: 'JPG', category: 'image' },
   jpeg: { name: 'JPEG', category: 'image' },
@@ -31,19 +24,32 @@ const FORMATS = {
   svg: { name: 'SVG', category: 'image' },
   ico: { name: 'ICO', category: 'image' },
   
-  // Audio
+  // Document Formats
+  'document-header': { name: '📄 DOCUMENTS', category: 'header' },
+  pdf: { name: 'PDF', category: 'document' },
+  docx: { name: 'DOCX', category: 'document' },
+  doc: { name: 'DOC', category: 'document' },
+  odt: { name: 'ODT', category: 'document' },
+  txt: { name: 'TXT', category: 'document' },
+  rtf: { name: 'RTF', category: 'document' },
+  
+  // Audio Formats
+  'audio-header': { name: '🎵 AUDIO', category: 'header' },
   mp3: { name: 'MP3', category: 'audio' },
   wav: { name: 'WAV', category: 'audio' },
   ogg: { name: 'OGG', category: 'audio' },
   m4a: { name: 'M4A', category: 'audio' },
   flac: { name: 'FLAC', category: 'audio' },
+  aac: { name: 'AAC', category: 'audio' },
   
-  // Video
+  // Video Formats
+  'video-header': { name: '🎬 VIDEO', category: 'header' },
   mp4: { name: 'MP4', category: 'video' },
   avi: { name: 'AVI', category: 'video' },
   mov: { name: 'MOV', category: 'video' },
   mkv: { name: 'MKV', category: 'video' },
-  webm: { name: 'WEBM', category: 'video' }
+  webm: { name: 'WEBM', category: 'video' },
+  flv: { name: 'FLV', category: 'video' }
 };
 
 // DOM Elements
@@ -101,21 +107,32 @@ function setupEventListeners() {
 }
 
 /**
- * Populate format buttons based on available formats
+ * Populate format buttons based on available formats - ORGANIZED BY CATEGORY
  */
 function populateFormatButtons() {
   formatGrid.innerHTML = '';
   
   Object.keys(FORMATS).forEach(format => {
-    const btn = document.createElement('button');
-    btn.type = 'button';
-    btn.className = 'format-btn';
-    btn.dataset.format = format;
-    btn.textContent = FORMATS[format].name;
+    const formatData = FORMATS[format];
     
-    btn.addEventListener('click', () => selectFormat(format, btn));
-    
-    formatGrid.appendChild(btn);
+    // Check if this is a header/category separator
+    if (formatData.category === 'header') {
+      const header = document.createElement('div');
+      header.className = 'format-header';
+      header.textContent = formatData.name;
+      formatGrid.appendChild(header);
+    } else {
+      // Create format button
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'format-btn';
+      btn.dataset.format = format;
+      btn.textContent = formatData.name;
+      
+      btn.addEventListener('click', () => selectFormat(format, btn));
+      
+      formatGrid.appendChild(btn);
+    }
   });
 }
 
@@ -149,7 +166,7 @@ function handleDrop(e) {
 }
 
 /**
- * Handle file selection
+ * Handle file selection and filter formats based on file type
  */
 function handleFileSelect() {
   const file = fileInput.files[0];
@@ -179,8 +196,95 @@ function handleFileSelect() {
     btn.classList.remove('selected');
   });
   
+  // Filter and show only compatible formats
+  filterFormatsByFileType(sourceExtension);
+  
   updateConvertButton();
   hideStatus();
+}
+
+/**
+ * Filter format buttons based on uploaded file type
+ */
+function filterFormatsByFileType(extension) {
+  // Determine the category of the uploaded file
+  const sourceCategory = getFileCategory(extension);
+  
+  if (!sourceCategory) {
+    // If unknown format, show all formats
+    populateFormatButtons();
+    return;
+  }
+  
+  // Clear current format grid
+  formatGrid.innerHTML = '';
+  
+  // Build filtered formats object with only compatible formats
+  const filteredFormats = {};
+  
+  // Add header for the matching category
+  Object.keys(FORMATS).forEach(format => {
+    const formatData = FORMATS[format];
+    
+    // Include headers and formats that match the source category
+    if (formatData.category === 'header') {
+      // Only include the header if it matches the source category
+      if (format.startsWith(sourceCategory)) {
+        filteredFormats[format] = formatData;
+      }
+    } else if (formatData.category === sourceCategory) {
+      // Include format if it's in the same category and not the same as source
+      if (format !== extension) {
+        filteredFormats[format] = formatData;
+      }
+    }
+  });
+  
+  // Populate with filtered formats
+  Object.keys(filteredFormats).forEach(format => {
+    const formatData = filteredFormats[format];
+    
+    if (formatData.category === 'header') {
+      const header = document.createElement('div');
+      header.className = 'format-header';
+      header.textContent = formatData.name;
+      formatGrid.appendChild(header);
+    } else {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'format-btn';
+      btn.dataset.format = format;
+      btn.textContent = formatData.name;
+      
+      btn.addEventListener('click', () => selectFormat(format, btn));
+      
+      formatGrid.appendChild(btn);
+    }
+  });
+  
+  // Show message if no compatible formats found
+  if (Object.keys(filteredFormats).length === 0) {
+    const message = document.createElement('div');
+    message.className = 'no-formats-message';
+    message.textContent = 'No compatible conversion formats available for this file type.';
+    formatGrid.appendChild(message);
+  }
+}
+
+/**
+ * Get file category based on extension
+ */
+function getFileCategory(extension) {
+  const ext = extension.toLowerCase();
+  
+  // Check each category
+  for (const [key, value] of Object.entries(FORMATS)) {
+    if (value.category !== 'header' && key === ext) {
+      return value.category;
+    }
+  }
+  
+  return null;
 }
 
 /**
