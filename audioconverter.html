@@ -1,0 +1,910 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="description" content="Free online file converter - Convert documents, images, audio, and video files"/>
+  <title>Free File Converter - Transform Any File Online</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+    
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    
+    body {
+      font-family: 'Inter', sans-serif;
+      background: linear-gradient(180deg, #ffffff 0%, #f8f9fb 100%);
+      min-height: 100vh;
+    }
+    
+    /* Header Styles */
+    header {
+      background: white;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+      padding: 1rem 0;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    
+    .header-content {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    
+    .logo-link {
+      display: flex;
+      align-items: center;
+      text-decoration: none;
+    }
+    
+    .logo {
+      height: 45px;
+      width: auto;
+      transition: transform 0.2s ease;
+    }
+    
+    .logo:hover {
+      transform: scale(1.05);
+    }
+    
+    .nav-links {
+      display: flex;
+      gap: 2rem;
+      align-items: center;
+    }
+    
+    .nav-link {
+      color: #4b5563;
+      text-decoration: none;
+      font-weight: 500;
+      transition: color 0.2s;
+    }
+    
+    .nav-link:hover {
+      color: #6366f1;
+    }
+    
+    .sign-in-btn {
+      background: #6366f1;
+      color: white;
+      padding: 0.625rem 1.5rem;
+      border-radius: 0.5rem;
+      font-weight: 600;
+      text-decoration: none;
+      transition: all 0.2s;
+    }
+    
+    .sign-in-btn:hover {
+      background: #4f46e5;
+      transform: translateY(-1px);
+    }
+    
+    /* Hero Section */
+    .hero-section {
+      text-align: center;
+      padding: 4rem 2rem 3rem;
+      max-width: 1000px;
+      margin: 0 auto;
+    }
+    
+    h1 {
+      font-size: 4rem;
+      font-weight: 900;
+      color: #111827;
+      margin-bottom: 1rem;
+      letter-spacing: -0.03em;
+      line-height: 1.1;
+    }
+    
+    .subtitle {
+      font-size: 1.375rem;
+      color: #6b7280;
+      margin-bottom: 3rem;
+      font-weight: 500;
+    }
+    
+    /* Upload Card */
+    .upload-card {
+      max-width: 900px;
+      margin: 0 auto 5rem;
+      padding: 0 2rem;
+    }
+    
+    .upload-area {
+      background: white;
+      border: 3px dashed #cbd5e1;
+      border-radius: 1.25rem;
+      padding: 4rem 2rem;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      position: relative;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.02);
+    }
+    
+    .upload-area:hover {
+      border-color: #6366f1;
+      background: #f8f9ff;
+      box-shadow: 0 8px 16px rgba(99, 102, 241, 0.08);
+    }
+    
+    .upload-area.dragover {
+      border-color: #6366f1;
+      background: #eef2ff;
+      transform: scale(1.01);
+      box-shadow: 0 12px 24px rgba(99, 102, 241, 0.15);
+    }
+    
+    .upload-area.has-file {
+      border-color: #6366f1;
+      background: #f8f9ff;
+    }
+    
+    .file-input {
+      display: none;
+    }
+    
+    .upload-button {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.75rem;
+      background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+      color: white;
+      padding: 1.125rem 2.5rem;
+      border-radius: 0.875rem;
+      font-size: 1.125rem;
+      font-weight: 700;
+      border: none;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 8px 20px rgba(99, 102, 241, 0.35);
+    }
+    
+    .upload-button:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 12px 28px rgba(99, 102, 241, 0.45);
+    }
+    
+    .upload-icon {
+      font-size: 1.5rem;
+    }
+    
+    .file-size-text {
+      margin-top: 1.75rem;
+      color: #6b7280;
+      font-size: 0.9375rem;
+    }
+    
+    .file-size-text a {
+      color: #6366f1;
+      text-decoration: none;
+      font-weight: 600;
+    }
+    
+    .terms-text {
+      margin-top: 0.875rem;
+      color: #9ca3af;
+      font-size: 0.8125rem;
+    }
+    
+    .file-display {
+      margin-top: 2rem;
+      padding: 1.75rem;
+      background: white;
+      border-radius: 1.25rem;
+      border: 2px solid #6366f1;
+      display: none;
+      animation: slideDown 0.4s ease;
+      box-shadow: 0 4px 12px rgba(99, 102, 241, 0.1);
+    }
+    
+    .file-display.active {
+      display: block;
+    }
+    
+    @keyframes slideDown {
+      from { opacity: 0; transform: translateY(-15px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    
+    .file-info {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+    
+    .file-details {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      flex: 1;
+      min-width: 200px;
+    }
+    
+    .file-icon {
+      font-size: 2.5rem;
+    }
+    
+    .file-name-text {
+      font-weight: 600;
+      color: #111827;
+      word-break: break-all;
+      font-size: 1.0625rem;
+    }
+    
+    .remove-btn {
+      background: #fee2e2;
+      color: #dc2626;
+      border: none;
+      padding: 0.625rem 1.25rem;
+      border-radius: 0.625rem;
+      cursor: pointer;
+      font-weight: 600;
+      transition: all 0.2s ease;
+    }
+    
+    .remove-btn:hover {
+      background: #fecaca;
+    }
+    
+    /* Conversion Section */
+    .conversion-section {
+      margin-top: 2.5rem;
+      display: none;
+      background: white;
+      padding: 2rem;
+      border-radius: 1.25rem;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    }
+    
+    .conversion-section.active {
+      display: block;
+      animation: slideDown 0.4s ease;
+    }
+    
+    .conversion-flow {
+      display: flex;
+      align-items: center;
+      gap: 1.5rem;
+      margin-bottom: 2rem;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+    
+    .file-type-box {
+      flex: 1;
+      min-width: 200px;
+      max-width: 280px;
+      padding: 1.5rem;
+      background: #f9fafb;
+      border-radius: 1rem;
+      border: 2px solid #e5e7eb;
+    }
+    
+    .file-type-label {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      color: #6b7280;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      margin-bottom: 0.5rem;
+    }
+    
+    .file-type-value {
+      font-size: 1.5rem;
+      font-weight: 800;
+      color: #111827;
+      text-transform: uppercase;
+    }
+    
+    .arrow-icon {
+      font-size: 2rem;
+      color: #6366f1;
+    }
+    
+    .format-label {
+      font-weight: 700;
+      color: #111827;
+      margin-bottom: 1.25rem;
+      display: block;
+      font-size: 1.0625rem;
+    }
+    
+    .format-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+      gap: 0.875rem;
+      margin-bottom: 2rem;
+    }
+    
+    .format-header {
+      grid-column: 1 / -1;
+      font-weight: 800;
+      font-size: 0.75rem;
+      color: #6366f1;
+      text-align: left;
+      padding: 0.75rem 0 0.25rem 0;
+      margin-top: 0.5rem;
+      border-bottom: 2px solid #e5e7eb;
+      letter-spacing: 0.05em;
+    }
+    
+    .format-header:first-child {
+      margin-top: 0;
+    }
+    
+    .format-btn {
+      padding: 1.125rem 0.75rem;
+      border: 2px solid #e5e7eb;
+      border-radius: 0.875rem;
+      background: white;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      font-weight: 700;
+      font-size: 0.9375rem;
+      color: #4b5563;
+      text-transform: uppercase;
+    }
+    
+    .format-btn:hover {
+      border-color: #6366f1;
+      background: #f8f9ff;
+      transform: translateY(-2px);
+    }
+    
+    .format-btn.selected {
+      background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+      border-color: #6366f1;
+      color: white;
+      transform: scale(1.05);
+    }
+    
+    .convert-btn {
+      width: 100%;
+      padding: 1.25rem;
+      border: none;
+      border-radius: 0.875rem;
+      background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+      color: white;
+      font-size: 1.25rem;
+      font-weight: 800;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 8px 20px rgba(16, 185, 129, 0.35);
+      text-transform: uppercase;
+    }
+    
+    .convert-btn:hover:not(:disabled) {
+      transform: translateY(-3px);
+      box-shadow: 0 12px 28px rgba(16, 185, 129, 0.45);
+    }
+    
+    .convert-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      background: #9ca3af;
+    }
+    
+    /* Progress Bar */
+    .progress-container {
+      margin-top: 1.5rem;
+      display: none;
+    }
+    
+    .progress-container.active {
+      display: block;
+      animation: slideDown 0.3s ease;
+    }
+    
+    .progress-bar-bg {
+      width: 100%;
+      height: 8px;
+      background: #e5e7eb;
+      border-radius: 999px;
+      overflow: hidden;
+    }
+    
+    .progress-bar {
+      height: 100%;
+      background: linear-gradient(90deg, #6366f1, #8b5cf6);
+      border-radius: 999px;
+      transition: width 0.3s ease;
+      width: 0%;
+    }
+    
+    .progress-text {
+      text-align: center;
+      margin-top: 0.75rem;
+      font-weight: 600;
+      color: #6b7280;
+      font-size: 0.9375rem;
+    }
+    
+    /* Status Messages */
+    .status {
+      margin-top: 1.5rem;
+      padding: 1.125rem;
+      border-radius: 0.875rem;
+      font-weight: 600;
+      text-align: center;
+      display: none;
+    }
+    
+    .status.active {
+      display: block;
+      animation: slideDown 0.3s ease;
+    }
+    
+    .status.success {
+      background: #d1fae5;
+      color: #065f46;
+      border: 2px solid #10b981;
+    }
+    
+    .status.error {
+      background: #fee2e2;
+      color: #991b1b;
+      border: 2px solid #ef4444;
+    }
+    
+    /* Features Section */
+    .features {
+      max-width: 1200px;
+      margin: 0 auto 5rem;
+      padding: 0 2rem;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 2rem;
+    }
+    
+    .feature {
+      text-align: center;
+      padding: 2.5rem 2rem;
+      background: white;
+      border-radius: 1.25rem;
+      transition: all 0.3s ease;
+      border: 1px solid #e5e7eb;
+    }
+    
+    .feature:hover {
+      transform: translateY(-8px);
+      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.08);
+      border-color: #6366f1;
+    }
+    
+    .feature-icon {
+      width: 80px;
+      height: 80px;
+      margin: 0 auto 1.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);
+      border-radius: 1.25rem;
+      font-size: 2.5rem;
+    }
+    
+    .feature-title {
+      font-size: 1.375rem;
+      font-weight: 800;
+      color: #111827;
+      margin-bottom: 0.875rem;
+    }
+    
+    .feature-description {
+      color: #6b7280;
+      line-height: 1.7;
+      font-size: 0.9375rem;
+    }
+    
+    /* Tools Section */
+    .tools-section {
+      max-width: 1200px;
+      margin: 0 auto 5rem;
+      padding: 0 2rem;
+    }
+    
+    .tools-header {
+      text-align: center;
+      margin-bottom: 3rem;
+    }
+    
+    .tools-header h2 {
+      font-size: 2.5rem;
+      font-weight: 800;
+      color: #111827;
+      margin-bottom: 1rem;
+    }
+    
+    .tools-header p {
+      font-size: 1.125rem;
+      color: #6b7280;
+    }
+    
+    .tools-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 2rem;
+    }
+    
+    .tool-category {
+      background: white;
+      border-radius: 1.25rem;
+      padding: 2rem;
+      border: 1px solid #e5e7eb;
+      transition: all 0.3s ease;
+    }
+    
+    .tool-category:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.08);
+      border-color: #6366f1;
+    }
+    
+    .tool-category-icon {
+      font-size: 3rem;
+      margin-bottom: 1rem;
+    }
+    
+    .tool-category-title {
+      font-size: 1.5rem;
+      font-weight: 800;
+      color: #111827;
+      margin-bottom: 1rem;
+    }
+    
+    .tool-category-description {
+      color: #6b7280;
+      margin-bottom: 1.5rem;
+      line-height: 1.6;
+      font-size: 0.9375rem;
+    }
+    
+    .tool-formats {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+    }
+    
+    .tool-format-tag {
+      background: #f3f4f6;
+      color: #4b5563;
+      padding: 0.5rem 0.875rem;
+      border-radius: 0.5rem;
+      font-size: 0.8125rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      transition: all 0.2s ease;
+    }
+    
+    .tool-format-tag:hover {
+      background: #e5e7eb;
+      transform: translateY(-2px);
+    }
+    
+    .tool-category.image .tool-format-tag {
+      background: #dbeafe;
+      color: #1e40af;
+    }
+    
+    .tool-category.document .tool-format-tag {
+      background: #fef3c7;
+      color: #92400e;
+    }
+    
+    .tool-category.audio .tool-format-tag {
+      background: #d1fae5;
+      color: #065f46;
+    }
+    
+    .tool-category.video .tool-format-tag {
+      background: #fce7f3;
+      color: #9f1239;
+    }
+    
+    .tool-conversion-arrows {
+      margin: 1rem 0;
+      text-align: center;
+      color: #9ca3af;
+      font-weight: 600;
+      font-size: 0.875rem;
+    }
+    
+    /* Footer */
+    footer {
+      background: #111827;
+      color: white;
+      padding: 3rem 2rem 2rem;
+      margin-top: auto;
+    }
+    
+    .footer-content {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    
+    .footer-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 3rem;
+      margin-bottom: 3rem;
+    }
+    
+    .footer-section h3 {
+      font-size: 1rem;
+      font-weight: 700;
+      margin-bottom: 1.25rem;
+    }
+    
+    .footer-links {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+    
+    .footer-links a {
+      color: #9ca3af;
+      text-decoration: none;
+      transition: color 0.2s;
+      font-size: 0.9375rem;
+    }
+    
+    .footer-links a:hover {
+      color: #6366f1;
+    }
+    
+    .footer-bottom {
+      border-top: 1px solid #374151;
+      padding-top: 2rem;
+      text-align: center;
+      color: #9ca3af;
+      font-size: 0.875rem;
+    }
+    
+    .footer-logo {
+      height: 40px;
+      width: auto;
+      margin-bottom: 0.5rem;
+    }
+    
+    @media (max-width: 768px) {
+      h1 { font-size: 2.5rem; }
+      .nav-links { gap: 1rem; }
+      .nav-link { display: none; }
+      .conversion-flow { flex-direction: column; }
+      .arrow-icon { transform: rotate(90deg); }
+    }
+  </style>
+</head>
+<body>
+  <!-- Header -->
+  <header>
+    <div class="header-content">
+      <a href="/" class="logo-link">
+        <img src="https://wiki-images.artofproblemsolving.com//3/34/Freefileconvertercom-high-resolution-logo-transparent.png" alt="FreeFileConverter" class="logo">
+      </a>
+      <nav class="nav-links">
+        <a href="#tools" class="nav-link">Tools</a>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Hero Section -->
+  <div class="hero-section">
+    <h1>Audio Converter</h1>
+    <p class="subtitle">Easily convert files from one format to another, online. Insert your audio file (or any file) into the space below. :)</p>
+  </div>
+  
+  <!-- Main Upload Card -->
+  <div class="upload-card">
+    <form id="convertForm">
+      <!-- Upload Area -->
+      <div class="upload-area" id="uploadArea">
+        <button type="button" class="upload-button" id="uploadBtn">
+          <span class="upload-icon">📄</span>
+          Choose Files
+        </button>
+        <input type="file" id="fileInput" name="file" class="file-input" required>
+        <p class="file-size-text">Max file size 1GB. <a href="#signup"></a> </p>
+        <p class="terms-text">By proceeding, you agree to our <a href="#terms">Terms of Use</a>.</p>
+      </div>
+      
+      <!-- File Display -->
+      <div class="file-display" id="fileDisplay">
+        <div class="file-info">
+          <div class="file-details">
+            <span class="file-icon">📎</span>
+            <span class="file-name-text" id="fileNameDisplay"></span>
+          </div>
+          <button type="button" class="remove-btn" id="removeBtn">Remove</button>
+        </div>
+      </div>
+      
+      <!-- Conversion Section -->
+      <div class="conversion-section" id="conversionSection">
+        <div class="conversion-flow">
+          <div class="file-type-box">
+            <div class="file-type-label">From</div>
+            <div class="file-type-value" id="fromFormat">-</div>
+          </div>
+          <div class="arrow-icon">→</div>
+          <div class="file-type-box">
+            <div class="file-type-label">To</div>
+            <div class="file-type-value" id="toFormat">-</div>
+          </div>
+        </div>
+        
+        <label class="format-label">Select output format:</label>
+        <div class="format-grid" id="formatGrid">
+          <!-- Formats will be populated by JavaScript -->
+        </div>
+        <input type="hidden" name="target" id="targetFormat" required>
+        <button type="submit" class="convert-btn" id="convertBtn" disabled>Select Format to Convert</button>
+        
+        <!-- Progress Bar -->
+        <div class="progress-container" id="progressContainer">
+          <div class="progress-bar-bg">
+            <div class="progress-bar" id="progressBar"></div>
+          </div>
+          <div class="progress-text" id="progressText">Converting...</div>
+        </div>
+      </div>
+      
+      <!-- Status Message -->
+      <div class="status" id="status"></div>
+    </form>
+  </div>
+  
+  <!-- Features Section -->
+  <div class="features">
+    <div class="feature">
+      <div class="feature-icon">📄</div>
+      <h3 class="feature-title">Convert Any File</h3>
+      <p class="feature-description">Support for hundreds of file formats including documents, images, audio, and video files.</p>
+    </div>
+    <div class="feature">
+      <div class="feature-icon">☁️</div>
+      <h3 class="feature-title">Works Anywhere</h3>
+      <p class="feature-description">Cloud-based conversion works on any device with a web browser. No software installation needed.</p>
+    </div>
+    <div class="feature">
+      <div class="feature-icon">🛡️</div>
+      <h3 class="feature-title">Privacy Guaranteed</h3>
+      <p class="feature-description">Your files are automatically deleted after conversion. We never store or share your data.</p>
+    </div>
+    <div class="feature">
+      <div class="feature-icon">💯</div>
+      <h3 class="feature-title">100% Free</h3>
+      <p class="feature-description">All file conversions are completely free with no hidden costs or premium features required.</p>
+    </div>
+  </div>
+  
+  <!-- Tools Section -->
+  <div class="tools-section">
+    <div class="tools-header">
+      <h2>Supported File Conversions</h2>
+      <p>Convert between dozens of file formats in seconds</p>
+    </div>
+    
+    <div class="tools-grid">
+      <!-- Image Converter -->
+      <div class="tool-category image">
+        <div class="tool-category-icon">🖼️</div>
+        <h3 class="tool-category-title">Image Converter</h3>
+        <p class="tool-category-description">Convert images between popular formats while maintaining quality.</p>
+        <div class="tool-conversion-arrows">Convert between:</div>
+        <div class="tool-formats">
+          <span class="tool-format-tag">PNG</span>
+          <span class="tool-format-tag">JPG</span>
+          <span class="tool-format-tag">JPEG</span>
+          <span class="tool-format-tag">GIF</span>
+          <span class="tool-format-tag">WEBP</span>
+          <span class="tool-format-tag">BMP</span>
+          <span class="tool-format-tag">SVG</span>
+          <span class="tool-format-tag">ICO</span>
+        </div>
+      </div>
+      
+      <!-- Document Converter -->
+      <div class="tool-category document">
+        <div class="tool-category-icon">📝</div>
+        <h3 class="tool-category-title">Document Converter</h3>
+        <p class="tool-category-description">Transform documents for compatibility across different platforms.</p>
+        <div class="tool-conversion-arrows">Convert between:</div>
+        <div class="tool-formats">
+          <span class="tool-format-tag">PDF</span>
+          <span class="tool-format-tag">DOCX</span>
+          <span class="tool-format-tag">DOC</span>
+          <span class="tool-format-tag">ODT</span>
+          <span class="tool-format-tag">TXT</span>
+          <span class="tool-format-tag">RTF</span>
+        </div>
+      </div>
+      
+      <!-- Audio Converter -->
+      <div class="tool-category audio">
+        <div class="tool-category-icon">🎵</div>
+        <h3 class="tool-category-title">Audio Converter</h3>
+        <p class="tool-category-description">Convert audio files to different formats for any media player.</p>
+        <div class="tool-conversion-arrows">Convert between:</div>
+        <div class="tool-formats">
+          <span class="tool-format-tag">MP3</span>
+          <span class="tool-format-tag">WAV</span>
+          <span class="tool-format-tag">OGG</span>
+          <span class="tool-format-tag">M4A</span>
+          <span class="tool-format-tag">FLAC</span>
+          <span class="tool-format-tag">AAC</span>
+        </div>
+      </div>
+      
+      <!-- Video Converter -->
+      <div class="tool-category video">
+        <div class="tool-category-icon">🎬</div>
+        <h3 class="tool-category-title">Video Converter</h3>
+        <p class="tool-category-description">Convert videos for web, mobile, or desktop playback.</p>
+        <div class="tool-conversion-arrows">Convert between:</div>
+        <div class="tool-formats">
+          <span class="tool-format-tag">MP4</span>
+          <span class="tool-format-tag">AVI</span>
+          <span class="tool-format-tag">MOV</span>
+          <span class="tool-format-tag">MKV</span>
+          <span class="tool-format-tag">WEBM</span>
+          <span class="tool-format-tag">FLV</span>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Footer -->
+  <footer>
+    <div class="footer-content">
+      <div class="footer-grid">
+        <div class="footer-section">
+          <img src="https://wiki-images.artofproblemsolving.com//3/34/Freefileconvertercom-high-resolution-logo-transparent.png" alt="FreeFileConverter" class="footer-logo">
+          <p style="color: #9ca3af; font-size: 0.9375rem; line-height: 1.6; margin-top: 1rem;">Transform any file format quickly and securely with our free online converter.</p>
+        </div>
+        <div class="footer-section">
+          <h3>Products</h3>
+          <ul class="footer-links">
+            <li><a href="/imageconverter.html">Image Converter</a></li>
+            <li><a href="/videoconverter.html">Video Converter</a></li>
+            <li><a href="/audioconverter.html">Audio Converter</a></li>
+            <li><a href="/documentconverter.html">Document Converter</a></li>
+          </ul>
+        </div>
+        <div class="footer-section">
+          <h3>Resources</h3>
+          <ul class="footer-links">
+            <li><a href="helpcenter.html">Help Center</a></li>
+            <li><a href="/blog.html">Blog</a></li>
+            <li><a href="/formatguide.html">Format Guide</a></li>
+          </ul>
+        </div>
+        <div class="footer-section">
+          <h3>Company</h3>
+          <ul class="footer-links">
+            <li><a href="/aboutus.html">About Us</a></li>
+            <li><a href="/privacypolicy.html">Privacy Policy</a></li>
+            <li><a href="/termsofservice.html">Terms of Service</a></li>
+            <li><a href="/contact.html">Contact</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <p>&copy; 2025 Free File Converter. All rights reserved.</p>
+      </div>
+    </div>
+  </footer>
+  
+  <script src="app.js"></script>
+</body>
+</html>
