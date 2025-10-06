@@ -8,7 +8,7 @@ const CONFIG = {
   // For local development: 'http://localhost:3000'
   // For production: 'https://your-backend.onrender.com' (NO TRAILING SLASH)
   BACKEND_URL: 'https://freefileconverters-backend.onrender.com',
-  MAX_FILE_SIZE: 1024 * 1024 * 1024 // 1GB in bytes
+  MAX_FILE_SIZE: 1024 * 1024 * 1024 // 1GB in bytes for total files
 };
 
 // Supported file formats mapped to their categories - ORGANIZED BY TYPE
@@ -32,6 +32,9 @@ const FORMATS = {
   odt: { name: 'ODT', category: 'document' },
   txt: { name: 'TXT', category: 'document' },
   rtf: { name: 'RTF', category: 'document' },
+  ppt: { name: 'PPT', category: 'document' },
+  pptx: { name: 'PPTX', category: 'document' },
+  odp: { name: 'ODP', category: 'document' },
   
   // Audio Formats
   'audio-header': { name: '🎵 AUDIO', category: 'header' },
@@ -72,9 +75,10 @@ const progressBar = document.getElementById('progressBar');
 const progressText = document.getElementById('progressText');
 
 // State
-let selectedFile = null;
+let selectedFiles = null;
 let selectedFormat = null;
-let sourceExtension = null;
+let sourceExtensions = null;
+let sourceCategory = null;
 
 /**
  * Initialize the application
@@ -115,14 +119,12 @@ function populateFormatButtons() {
   Object.keys(FORMATS).forEach(format => {
     const formatData = FORMATS[format];
     
-    // Check if this is a header/category separator
     if (formatData.category === 'header') {
       const header = document.createElement('div');
       header.className = 'format-header';
       header.textContent = formatData.name;
       formatGrid.appendChild(header);
     } else {
-      // Create format button
       const btn = document.createElement('button');
       btn.type = 'button';
       btn.className = 'format-btn';
@@ -169,22 +171,40 @@ function handleDrop(e) {
  * Handle file selection and filter formats based on file type
  */
 function handleFileSelect() {
-  const file = fileInput.files[0];
+  const files = fileInput.files;
   
-  if (!file) return;
+  if (files.length === 0) return;
   
-  // Check file size
-  if (file.size > CONFIG.MAX_FILE_SIZE) {
-    showStatus('File size exceeds 1GB limit. Please choose a smaller file.', 'error');
+  if (files.length > 4) {
+    showStatus('Maximum 4 files allowed.', 'error');
     return;
   }
   
-  selectedFile = file;
-  sourceExtension = file.name.split('.').pop().toLowerCase();
+  let totalSize = 0;
+  Array.from(files).forEach(file => {
+    totalSize += file.size;
+  });
+  
+  if (totalSize > CONFIG.MAX_FILE_SIZE) {
+    showStatus('Total file size exceeds 1GB limit. Please choose smaller files.', 'error');
+    return;
+  }
+  
+  selectedFiles = files;
+  sourceExtensions = Array.from(files).map(file => file.name.split('.').pop().toLowerCase());
+  
+  const categories = sourceExtensions.map(ext => getFileCategory(ext));
+  sourceCategory = categories[0];
+  const allSameCategory = categories.every(cat => cat === sourceCategory);
+  
+  if (!allSameCategory || !sourceCategory) {
+    showStatus('All files must be of the same type and supported format.', 'error');
+    return;
+  }
   
   // Update UI
-  fileNameDisplay.textContent = file.name;
-  fromFormat.textContent = sourceExtension.toUpperCase();
+  fileNameDisplay.innerHTML = Array.from(files).map(file => `<div>${file.name}</div>`).join('');
+  fromFormat.textContent = sourceExtensions[0].toUpperCase();
   uploadArea.classList.add('has-file');
   fileDisplay.classList.add('active');
   conversionSection.classList.add('active');
@@ -196,60 +216,58 @@ function handleFileSelect() {
     btn.classList.remove('selected');
   });
   
-  // Filter and show only compatible formats
-  filterFormatsByFileType(sourceExtension);
+  // Filter and show compatible formats
+  filterFormatsByFileType(sourceCategory, sourceExtensions[0]);
   
   updateConvertButton();
   hideStatus();
 }
 
 /**
- * Filter format buttons based on uploaded file type
+ * Filter format buttons based on uploaded file type, allowing cross image-document
  */
-function filterFormatsByFileType(extension) {
-  // Determine the category of the uploaded file
-  const sourceCategory = getFileCategory(extension);
-  
-  if (!sourceCategory) {
-    // If unknown format, show all formats
-    populateFormatButtons();
-    return;
-  }
-  
-  // Clear current format grid
+function filterFormatsByFileType(category, extension) {
   formatGrid.innerHTML = '';
   
-  // Build filtered formats object with only compatible formats
   const filteredFormats = {};
   
-  // Add header for the matching category
   Object.keys(FORMATS).forEach(format => {
     const formatData = FORMATS[format];
     
-    // Include headers and formats that match the source category
     if (formatData.category === 'header') {
-      // Only include the header if it matches the source category
-      if (format.startsWith(sourceCategory)) {
-        filteredFormats[format] = formatData;
+      filteredFormats[format] = formatData;
+    } else {
+      let include = false;
+      if (formatData.category === category && format !== extension) {
+        include = true;
+      } else if (category === 'image' && (formatData.category === 'document' && format === 'pdf')) {
+        include = true;
+      } else if (category === 'document' && formatData.category === 'image') {
+        include = true;
+      } else if (category === 'audio' || category === 'video') {
+        if (formatData.category === category && format !== extension) {
+          include = true;
+        }
       }
-    } else if (formatData.category === sourceCategory) {
-      // Include format if it's in the same category and not the same as source
-      if (format !== extension) {
+      if (include) {
         filteredFormats[format] = formatData;
       }
     }
   });
   
-  // Populate with filtered formats
+  // Populate with filtered formats, including relevant headers
+  let currentHeader = null;
   Object.keys(filteredFormats).forEach(format => {
     const formatData = filteredFormats[format];
     
     if (formatData.category === 'header') {
+      currentHeader = format;
       const header = document.createElement('div');
       header.className = 'format-header';
       header.textContent = formatData.name;
       formatGrid.appendChild(header);
     } else {
+      // Only add if header is present or cross-category
       const btn = document.createElement('button');
       btn.type = 'button';
       btn.className = 'format-btn';
@@ -262,8 +280,7 @@ function filterFormatsByFileType(extension) {
     }
   });
   
-  // Show message if no compatible formats found
-  if (Object.keys(filteredFormats).length === 0) {
+  if (Object.keys(filteredFormats).filter(f => FORMATS[f].category !== 'header').length === 0) {
     const message = document.createElement('div');
     message.className = 'no-formats-message';
     message.textContent = 'No compatible conversion formats available for this file type.';
@@ -277,7 +294,6 @@ function filterFormatsByFileType(extension) {
 function getFileCategory(extension) {
   const ext = extension.toLowerCase();
   
-  // Check each category
   for (const [key, value] of Object.entries(FORMATS)) {
     if (value.category !== 'header' && key === ext) {
       return value.category;
@@ -291,12 +307,10 @@ function getFileCategory(extension) {
  * Select target format
  */
 function selectFormat(format, button) {
-  // Deselect all buttons
   document.querySelectorAll('.format-btn').forEach(btn => {
     btn.classList.remove('selected');
   });
   
-  // Select current button
   button.classList.add('selected');
   selectedFormat = format;
   targetFormat.value = format;
@@ -310,7 +324,7 @@ function selectFormat(format, button) {
  * Update convert button state
  */
 function updateConvertButton() {
-  if (selectedFile && selectedFormat) {
+  if (selectedFiles && selectedFormat) {
     convertBtn.disabled = false;
     convertBtn.textContent = `Convert to ${selectedFormat.toUpperCase()}`;
   } else {
@@ -324,9 +338,10 @@ function updateConvertButton() {
  */
 function resetForm() {
   fileInput.value = '';
-  selectedFile = null;
+  selectedFiles = null;
   selectedFormat = null;
-  sourceExtension = null;
+  sourceExtensions = null;
+  sourceCategory = null;
   
   uploadArea.classList.remove('has-file');
   fileDisplay.classList.remove('active');
@@ -351,8 +366,8 @@ function resetForm() {
 async function handleConvert(e) {
   e.preventDefault();
   
-  if (!selectedFile || !selectedFormat) {
-    showStatus('Please select a file and target format.', 'error');
+  if (!selectedFiles || selectedFiles.length === 0 || !selectedFormat) {
+    showStatus('Please select files and target format.', 'error');
     return;
   }
   
@@ -363,13 +378,13 @@ async function handleConvert(e) {
   // Show progress
   progressContainer.classList.add('active');
   progressBar.style.width = '0%';
-  progressText.textContent = 'Uploading file...';
+  progressText.textContent = 'Uploading files...';
   hideStatus();
   
   try {
     // Create form data
     const formData = new FormData();
-    formData.append('file', selectedFile);
+    Array.from(selectedFiles).forEach(file => formData.append('files', file));
     formData.append('targetFormat', selectedFormat);
     
     // Phase 1: Upload (0-30%)
@@ -394,7 +409,7 @@ async function handleConvert(e) {
       setTimeout(resolve, 2000);
     });
     
-    // Wait for either processing animation or actual response (whichever is longer)
+    // Wait for either processing animation or actual response
     const [response] = await Promise.all([fetchPromise, processingPromise]);
     
     if (!response.ok) {
@@ -420,10 +435,15 @@ async function handleConvert(e) {
     const a = document.createElement('a');
     a.href = url;
     
-    // Generate filename
-    const originalName = selectedFile.name;
-    const nameWithoutExt = originalName.substring(0, originalName.lastIndexOf('.'));
-    a.download = `${nameWithoutExt}.${selectedFormat}`;
+    // Determine filename from Content-Disposition or default
+    let filename = selectedFiles.length > 1 ? 'converted_files.zip' : `${selectedFiles[0].name.split('.').slice(0, -1).join('.')}.${selectedFormat}`;
+    const contentDisposition = response.headers.get('Content-Disposition');
+    if (contentDisposition) {
+      const match = contentDisposition.match(/filename="?(.+?)"?$/);
+      if (match) filename = match[1];
+    }
+    
+    a.download = filename;
     
     document.body.appendChild(a);
     a.click();
@@ -433,7 +453,7 @@ async function handleConvert(e) {
     // Show success message
     setTimeout(() => {
       progressContainer.classList.remove('active');
-      showStatus('✓ Success! Your file has been converted and downloaded. Files are automatically deleted from our servers.', 'success');
+      showStatus('✓ Success! Your files have been converted and downloaded. Files are automatically deleted from our servers.', 'success');
       convertBtn.textContent = `Convert to ${selectedFormat.toUpperCase()}`;
       convertBtn.disabled = false;
     }, 500);
