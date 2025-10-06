@@ -5,16 +5,15 @@
 
 // Configuration - UPDATE THIS WITH YOUR BACKEND URL
 const CONFIG = {
-  // For local development: 'http://localhost:3000'
-  // For production: 'https://your-backend.onrender.com' (NO TRAILING SLASH)
   BACKEND_URL: 'https://freefileconverters-backend.onrender.com',
-  MAX_FILE_SIZE: 1024 * 1024 * 1024 // 1GB in bytes
+  MAX_FILE_SIZE: 1024 * 1024 * 1024, // 1GB in bytes
+  MAX_FILES: 4
 };
 
 // Supported file formats mapped to their categories - ORGANIZED BY TYPE
 const FORMATS = {
   // Image Formats
-  'image-header': { name: '📷 IMAGES', category: 'header' },
+  'image-header': { name: '🖼️ IMAGES', category: 'header' },
   png: { name: 'PNG', category: 'image' },
   jpg: { name: 'JPG', category: 'image' },
   jpeg: { name: 'JPEG', category: 'image' },
@@ -23,6 +22,7 @@ const FORMATS = {
   bmp: { name: 'BMP', category: 'image' },
   svg: { name: 'SVG', category: 'image' },
   ico: { name: 'ICO', category: 'image' },
+  tiff: { name: 'TIFF', category: 'image' },
   
   // Document Formats
   'document-header': { name: '📄 DOCUMENTS', category: 'header' },
@@ -32,6 +32,9 @@ const FORMATS = {
   odt: { name: 'ODT', category: 'document' },
   txt: { name: 'TXT', category: 'document' },
   rtf: { name: 'RTF', category: 'document' },
+  pptx: { name: 'PPTX', category: 'document' },
+  ppt: { name: 'PPT', category: 'document' },
+  odp: { name: 'ODP', category: 'document' },
   
   // Audio Formats
   'audio-header': { name: '🎵 AUDIO', category: 'header' },
@@ -72,9 +75,8 @@ const progressBar = document.getElementById('progressBar');
 const progressText = document.getElementById('progressText');
 
 // State
-let selectedFile = null;
+let selectedFiles = [];
 let selectedFormat = null;
-let sourceExtension = null;
 
 /**
  * Initialize the application
@@ -88,26 +90,17 @@ function init() {
  * Setup all event listeners
  */
 function setupEventListeners() {
-  // Upload button click
   uploadBtn.addEventListener('click', () => fileInput.click());
-  
-  // File input change
   fileInput.addEventListener('change', handleFileSelect);
-  
-  // Drag and drop
   uploadArea.addEventListener('dragover', handleDragOver);
   uploadArea.addEventListener('dragleave', handleDragLeave);
   uploadArea.addEventListener('drop', handleDrop);
-  
-  // Remove file button
   removeBtn.addEventListener('click', resetForm);
-  
-  // Form submission
   convertForm.addEventListener('submit', handleConvert);
 }
 
 /**
- * Populate format buttons based on available formats - ORGANIZED BY CATEGORY
+ * Populate format buttons based on available formats
  */
 function populateFormatButtons() {
   formatGrid.innerHTML = '';
@@ -115,22 +108,18 @@ function populateFormatButtons() {
   Object.keys(FORMATS).forEach(format => {
     const formatData = FORMATS[format];
     
-    // Check if this is a header/category separator
     if (formatData.category === 'header') {
       const header = document.createElement('div');
       header.className = 'format-header';
       header.textContent = formatData.name;
       formatGrid.appendChild(header);
     } else {
-      // Create format button
       const btn = document.createElement('button');
       btn.type = 'button';
       btn.className = 'format-btn';
       btn.dataset.format = format;
       btn.textContent = formatData.name;
-      
       btn.addEventListener('click', () => selectFormat(format, btn));
-      
       formatGrid.appendChild(btn);
     }
   });
@@ -158,33 +147,43 @@ function handleDrop(e) {
   e.preventDefault();
   uploadArea.classList.remove('dragover');
   
-  const files = e.dataTransfer.files;
+  const files = Array.from(e.dataTransfer.files).slice(0, CONFIG.MAX_FILES);
   if (files.length > 0) {
-    fileInput.files = files;
+    const dt = new DataTransfer();
+    files.forEach(f => dt.items.add(f));
+    fileInput.files = dt.files;
     handleFileSelect();
   }
 }
 
 /**
- * Handle file selection and filter formats based on file type
+ * Handle file selection
  */
 function handleFileSelect() {
-  const file = fileInput.files[0];
+  const files = Array.from(fileInput.files).slice(0, CONFIG.MAX_FILES);
   
-  if (!file) return;
+  if (!files || files.length === 0) return;
   
-  // Check file size
-  if (file.size > CONFIG.MAX_FILE_SIZE) {
-    showStatus('File size exceeds 1GB limit. Please choose a smaller file.', 'error');
-    return;
+  // Check file sizes
+  for (const file of files) {
+    if (file.size > CONFIG.MAX_FILE_SIZE) {
+      showStatus(`File "${file.name}" exceeds 1GB limit. Please choose smaller files.`, 'error');
+      return;
+    }
   }
   
-  selectedFile = file;
-  sourceExtension = file.name.split('.').pop().toLowerCase();
+  selectedFiles = files;
   
-  // Update UI
-  fileNameDisplay.textContent = file.name;
-  fromFormat.textContent = sourceExtension.toUpperCase();
+  // Display file info
+  if (files.length === 1) {
+    fileNameDisplay.textContent = files[0].name;
+    const ext = files[0].name.split('.').pop().toLowerCase();
+    fromFormat.textContent = ext.toUpperCase();
+  } else {
+    fileNameDisplay.textContent = `${files.length} files selected`;
+    fromFormat.textContent = 'MULTI';
+  }
+  
   uploadArea.classList.add('has-file');
   fileDisplay.classList.add('active');
   conversionSection.classList.add('active');
@@ -196,79 +195,11 @@ function handleFileSelect() {
     btn.classList.remove('selected');
   });
   
-  // Filter and show only compatible formats
-  filterFormatsByFileType(sourceExtension);
+  // Show all formats for multiple files
+  populateFormatButtons();
   
   updateConvertButton();
   hideStatus();
-}
-
-/**
- * Filter format buttons based on uploaded file type
- */
-function filterFormatsByFileType(extension) {
-  // Determine the category of the uploaded file
-  const sourceCategory = getFileCategory(extension);
-  
-  if (!sourceCategory) {
-    // If unknown format, show all formats
-    populateFormatButtons();
-    return;
-  }
-  
-  // Clear current format grid
-  formatGrid.innerHTML = '';
-  
-  // Build filtered formats object with only compatible formats
-  const filteredFormats = {};
-  
-  // Add header for the matching category
-  Object.keys(FORMATS).forEach(format => {
-    const formatData = FORMATS[format];
-    
-    // Include headers and formats that match the source category
-    if (formatData.category === 'header') {
-      // Only include the header if it matches the source category
-      if (format.startsWith(sourceCategory)) {
-        filteredFormats[format] = formatData;
-      }
-    } else if (formatData.category === sourceCategory) {
-      // Include format if it's in the same category and not the same as source
-      if (format !== extension) {
-        filteredFormats[format] = formatData;
-      }
-    }
-  });
-  
-  // Populate with filtered formats
-  Object.keys(filteredFormats).forEach(format => {
-    const formatData = filteredFormats[format];
-    
-    if (formatData.category === 'header') {
-      const header = document.createElement('div');
-      header.className = 'format-header';
-      header.textContent = formatData.name;
-      formatGrid.appendChild(header);
-    } else {
-      const btn = document.createElement('button');
-      btn.type = 'button';
-      btn.className = 'format-btn';
-      btn.dataset.format = format;
-      btn.textContent = formatData.name;
-      
-      btn.addEventListener('click', () => selectFormat(format, btn));
-      
-      formatGrid.appendChild(btn);
-    }
-  });
-  
-  // Show message if no compatible formats found
-  if (Object.keys(filteredFormats).length === 0) {
-    const message = document.createElement('div');
-    message.className = 'no-formats-message';
-    message.textContent = 'No compatible conversion formats available for this file type.';
-    formatGrid.appendChild(message);
-  }
 }
 
 /**
@@ -276,14 +207,11 @@ function filterFormatsByFileType(extension) {
  */
 function getFileCategory(extension) {
   const ext = extension.toLowerCase();
-  
-  // Check each category
   for (const [key, value] of Object.entries(FORMATS)) {
     if (value.category !== 'header' && key === ext) {
       return value.category;
     }
   }
-  
   return null;
 }
 
@@ -291,12 +219,10 @@ function getFileCategory(extension) {
  * Select target format
  */
 function selectFormat(format, button) {
-  // Deselect all buttons
   document.querySelectorAll('.format-btn').forEach(btn => {
     btn.classList.remove('selected');
   });
   
-  // Select current button
   button.classList.add('selected');
   selectedFormat = format;
   targetFormat.value = format;
@@ -310,9 +236,9 @@ function selectFormat(format, button) {
  * Update convert button state
  */
 function updateConvertButton() {
-  if (selectedFile && selectedFormat) {
+  if (selectedFiles.length > 0 && selectedFormat) {
     convertBtn.disabled = false;
-    convertBtn.textContent = `Convert to ${selectedFormat.toUpperCase()}`;
+    convertBtn.textContent = `Convert ${selectedFiles.length} file${selectedFiles.length > 1 ? 's' : ''} to ${selectedFormat.toUpperCase()}`;
   } else {
     convertBtn.disabled = true;
     convertBtn.textContent = 'Select Format to Convert';
@@ -324,9 +250,8 @@ function updateConvertButton() {
  */
 function resetForm() {
   fileInput.value = '';
-  selectedFile = null;
+  selectedFiles = [];
   selectedFormat = null;
-  sourceExtension = null;
   
   uploadArea.classList.remove('has-file');
   fileDisplay.classList.remove('active');
@@ -346,55 +271,47 @@ function resetForm() {
 }
 
 /**
- * Handle file conversion with realistic progress tracking
+ * Handle file conversion
  */
 async function handleConvert(e) {
   e.preventDefault();
   
-  if (!selectedFile || !selectedFormat) {
-    showStatus('Please select a file and target format.', 'error');
+  if (selectedFiles.length === 0 || !selectedFormat) {
+    showStatus('Please select file(s) and target format.', 'error');
     return;
   }
   
-  // Disable convert button during conversion
   convertBtn.disabled = true;
   convertBtn.textContent = 'Converting...';
   
-  // Show progress
   progressContainer.classList.add('active');
   progressBar.style.width = '0%';
-  progressText.textContent = 'Uploading file...';
+  progressText.textContent = 'Uploading files...';
   hideStatus();
   
   try {
-    // Create form data
     const formData = new FormData();
-    formData.append('file', selectedFile);
+    selectedFiles.forEach(file => {
+      formData.append('files', file);
+    });
     formData.append('targetFormat', selectedFormat);
     
     // Phase 1: Upload (0-30%)
-    const uploadPromise = new Promise(resolve => {
-      animateProgress(0, 30, 1500);
-      setTimeout(resolve, 1500);
+    animateProgress(0, 30, 1500);
+    await new Promise(resolve => setTimeout(resolve, 1500));
+    
+    // Phase 2: Processing (30-70%)
+    progressText.textContent = 'Processing conversion...';
+    const processingPromise = new Promise(resolve => {
+      animateProgress(30, 70, 3000);
+      setTimeout(resolve, 3000);
     });
     
-    // Start the actual fetch request
     const fetchPromise = fetch(`${CONFIG.BACKEND_URL}/convert`, {
       method: 'POST',
       body: formData
     });
     
-    // Wait for upload animation to complete
-    await uploadPromise;
-    
-    // Phase 2: Processing (30-70%)
-    progressText.textContent = 'Processing conversion...';
-    const processingPromise = new Promise(resolve => {
-      animateProgress(30, 70, 2000);
-      setTimeout(resolve, 2000);
-    });
-    
-    // Wait for either processing animation or actual response (whichever is longer)
     const [response] = await Promise.all([fetchPromise, processingPromise]);
     
     if (!response.ok) {
@@ -406,13 +323,11 @@ async function handleConvert(e) {
     progressText.textContent = 'Finalizing...';
     animateProgress(70, 95, 1000);
     
-    // Get the converted file
     const blob = await response.blob();
     
     // Phase 4: Complete (95-100%)
     progressText.textContent = 'Download ready!';
     animateProgress(95, 100, 300);
-    
     await new Promise(resolve => setTimeout(resolve, 300));
     
     // Download the file
@@ -421,19 +336,22 @@ async function handleConvert(e) {
     a.href = url;
     
     // Generate filename
-    const originalName = selectedFile.name;
-    const nameWithoutExt = originalName.substring(0, originalName.lastIndexOf('.'));
-    a.download = `${nameWithoutExt}.${selectedFormat}`;
+    if (selectedFiles.length === 1) {
+      const originalName = selectedFiles[0].name;
+      const nameWithoutExt = originalName.substring(0, originalName.lastIndexOf('.'));
+      a.download = `${nameWithoutExt}.${selectedFormat}`;
+    } else {
+      a.download = 'converted_files.zip';
+    }
     
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
     window.URL.revokeObjectURL(url);
     
-    // Show success message
     setTimeout(() => {
       progressContainer.classList.remove('active');
-      showStatus('✓ Success! Your file has been converted and downloaded. Files are automatically deleted from our servers.', 'success');
+      showStatus('✓ Success! Your file(s) have been converted and downloaded.', 'success');
       convertBtn.textContent = `Convert to ${selectedFormat.toUpperCase()}`;
       convertBtn.disabled = false;
     }, 500);
