@@ -450,6 +450,47 @@
       line-height: 1.7;
       font-size: 0.9375rem;
     }
+
+    /* --- Footer Grid Styles (from reference) --- */
+    .footer-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 3rem;
+      margin-bottom: 3rem;
+    }
+    
+    .footer-section h3 {
+      font-size: 1rem;
+      font-weight: 700;
+      margin-bottom: 1.25rem;
+    }
+    
+    .footer-links {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+      padding: 0;
+      margin: 0;
+    }
+    
+    .footer-links a {
+      color: #9ca3af;
+      text-decoration: none;
+      transition: color 0.2s;
+      font-size: 0.9375rem;
+    }
+    
+    .footer-links a:hover {
+      color: #6366f1;
+    }
+    
+    .footer-logo {
+      height: 40px;
+      width: auto;
+      margin-bottom: 0.5rem;
+    }
+    /* --- End Footer Grid Styles --- */
     
     footer {
       background: #111827;
@@ -474,6 +515,7 @@
     @media (max-width: 768px) {
       h1 { font-size: 2.5rem; }
       .conversion-flow { flex-direction: column; }
+      .footer-grid { gap: 1.5rem; }
     }
   </style>
 </head>
@@ -563,14 +605,48 @@
     </div>
   </div>
   
+  <!-- Footer Start -->
   <footer>
     <div class="footer-content">
+      <div class="footer-grid">
+        <div class="footer-section">
+          <img src="https://wiki-images.artofproblemsolving.com//3/34/Freefileconvertercom-high-resolution-logo-transparent.png" alt="FreeFileConverter" class="footer-logo">
+          <p style="color: #9ca3af; font-size: 0.9375rem; line-height: 1.6; margin-top: 1rem;">Transform any file format quickly and securely with our free online converter.</p>
+        </div>
+        <div class="footer-section">
+          <h3>Products</h3>
+          <ul class="footer-links">
+            <li><a href="/imageconverter.html">Image Converter</a></li>
+            <li><a href="/videoconverter.html">Video Converter</a></li>
+            <li><a href="/audioconverter.html">Audio Converter</a></li>
+            <li><a href="/documentconverter.html">Document Converter</a></li>
+          </ul>
+        </div>
+        <div class="footer-section">
+          <h3>Resources</h3>
+          <ul class="footer-links">
+            <li><a href="helpcenter.html">Help Center</a></li>
+            <li><a href="/blog.html">Blog</a></li>
+            <li><a href="/formatguide.html">Format Guide</a></li>
+          </ul>
+        </div>
+        <div class="footer-section">
+          <h3>Company</h3>
+          <ul class="footer-links">
+            <li><a href="/aboutus.html">About Us</a></li>
+            <li><a href="/privacypolicy.html">Privacy Policy</a></li>
+            <li><a href="/termsofservice.html">Terms of Service</a></li>
+            <li><a href="/contact.html">Contact</a></li>
+          </ul>
+        </div>
+      </div>
       <div class="footer-bottom">
         <p>&copy; 2025 Free File Converter. All rights reserved.</p>
       </div>
     </div>
   </footer>
-  
+  <!-- Footer End -->
+
   <script src="app.js"></script>
 </body>
 </html>
